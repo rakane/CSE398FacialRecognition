@@ -13,7 +13,7 @@ using namespace cv;
 using namespace std;
 
 
-void detectAndDisplay(Mat frame);
+Point detectAndDisplay(Mat frame);
 
 /** Global variables */
 string face_cascade_name = "haarcascade_frontalface_alt.xml";
@@ -65,18 +65,21 @@ int main(int argc, char* argv[]) {
 		exit(0);
 	}
 
-	Mat frame;
 	if(!face_cascade.load(face_cascade_name)) {
 		std::cout << "Cannot load face cascade\n";
 		exit(0);
 	}	
 	
+
+	Mat frame;
 	long count = 0;
 
 	while(1) {
 		if(count % EVERY_FRAME == 0) {
 			cap >> frame;
-			detectAndDisplay(frame);
+			Point face = detectAndDisplay(frame);
+			std::cout << "X: " << face.x << std::endl;
+			std::cout << "Y: " << face.y << std::endl;
 			int c = waitKey(10);
 			if((char) c == 'c') break;
 
@@ -91,7 +94,7 @@ int main(int argc, char* argv[]) {
 	return 1;
 }
 
-void detectAndDisplay(Mat frame) {
+Point detectAndDisplay(Mat frame) {
 	std::vector<Rect> faces;
 	Mat frame_gray;
 
@@ -99,14 +102,18 @@ void detectAndDisplay(Mat frame) {
 	equalizeHist(frame_gray, frame_gray);
 	
 	//-- Detect faces
-  	face_cascade.detectMultiScale( frame_gray, faces, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(30, 30) );
+  	face_cascade.detectMultiScale( frame_gray, faces, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(100, 100) );
+	Point center;
 
   	for( size_t i = 0; i < faces.size(); i++ ) {
-    	Point center( faces[i].x + faces[i].width*0.5, faces[i].y + faces[i].height*0.5 );
+    	// Point center( faces[i].x + faces[i].width*0.5, faces[i].y + faces[i].height*0.5 );
+		center.x = faces[i].x + faces[i].width * 0.5;
+		center.y = faces[i].y + faces[i].height * 0.5;  
     	ellipse( frame, center, Size( faces[i].width*0.5, faces[i].height*0.5), 0, 0, 360, Scalar( 255, 0, 255 ), 4, 8, 0 );
 
     	Mat faceROI = frame_gray( faces[i] );
   	}
   	//-- Show what you got
   	imshow( window_name, frame );
+	return center;
 }
