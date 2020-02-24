@@ -1,7 +1,9 @@
 #include "servoHandler.h"
 
-ServoHandler::ServoHandler(int headerNum, int fd) {
+ServoHandler::ServoHandler(int headerNum, int fd, int minVal, int maxVal) {
 	headerNumber = headerNum;
+	minValue = minVal;
+	maxValue = maxVal;
 
 	int status = wiringPiI2CWriteReg8(fd, 0x00, 0x01);
 	if(status == -1) {
@@ -10,15 +12,18 @@ ServoHandler::ServoHandler(int headerNum, int fd) {
 	}
 }
 
+int ServoHandler::getAngle() {
+	return currAngle;
+}
 
 int ServoHandler::moveServo(int angle, int fd) {
-	
-	int step = (MAX_VAL - MIN_VAL) / 180;
-	int mappedAngle = MIN_VAL + (step * angle);
+	currAngle = angle;
+	int step = (maxValue - minValue) / 180;
+	int mappedAngle = minValue + (step * angle);
 
 	int lowBits = mappedAngle & 0x00FF;
-	int highBits = (mappedAngle & 0xFF00) >> 8;
-
+	int highBits = (mappedAngle & 0xFF00) >> 8
+			;	
 	std::cout << "Mapped Angle: " << std::hex << mappedAngle << std::endl;
 	std::cout << "Low bits: " << std::hex << lowBits << std::endl;
 	std::cout << "High bits: " << std::hex << highBits << std::endl;
@@ -28,13 +33,13 @@ int ServoHandler::moveServo(int angle, int fd) {
 	
 	int status = wiringPiI2CWriteReg8(fd, lowReg, lowBits);
 	if(status == -1) {
-		std::cout << "Failed to write initial setup mode!\n";
+		std::cout << "Failed to write low bits!\n";
 		return -1;
 	}
 
 	status = wiringPiI2CWriteReg8(fd, highReg, highBits);
 	if(status == -1) {
-		std::cout << "Failed to write initial setup mode!\n";
+		std::cout << "Failed to write high bits!\n";
 		return -1;
 	}
 

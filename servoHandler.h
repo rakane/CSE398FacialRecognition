@@ -8,12 +8,14 @@
 
 class ServoHandler {
 public:
-	ServoHandler(int headerNum, int fd);
+	ServoHandler(int headerNum, int fd, int minVal, int maxVal);
 	int moveServo(int angle, int fd);
+	int getAngle();
 private:
-	int MIN_VAL = 0x70;
-	int MAX_VAL = 0x415;
-	int headerNumber;	
+	int minValue;
+	int maxValue;
+	int headerNumber;
+	int currAngle;
 };
 
 #endif

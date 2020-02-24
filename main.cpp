@@ -20,46 +20,33 @@ string face_cascade_name = "haarcascade_frontalface_alt.xml";
 CascadeClassifier face_cascade;
 string window_name = "Capture - Face detection";
 RNG rng(12345);
-const long EVERY_FRAME = 5;
+const long EVERY_FRAME = 1;
 
 
 int main(int argc, char* argv[]) {
-/*	wiringPiSetup();
+	wiringPiSetup();
 	int fd = wiringPiI2CSetup(0x40);
-	ServoHandler pan = ServoHandler(0, fd);
-	ServoHandler tilt = ServoHandler(1, fd);
+	ServoHandler pan = ServoHandler(1, fd, 0x1ae, 0x410);
+	ServoHandler tilt = ServoHandler(0, fd, 0x19d, 0x410);
 
-	if(argc > 2) {
-		int status = pan.moveServo(atoi(argv[1]), fd);
-		if(status == -1) {
-			std::cout << "Failed to move pan servo!\n";
-		}
+	int status = pan.moveServo(90, fd);
+	if(status == -1) {
+		std::cout << "Failed to move pan servo!\n";
+	}
 
-		status = tilt.moveServo(atoi(argv[2]), fd);
-		if(status == -1) {
-			std::cout << "Failed to move pan servo!\n";
-		}
-	} else {
-		for(int i = 0; i < 180; i++) {
-			int status = pan.moveServo(i, fd);
-			if(status == -1) {
-				std::cout << "Failed to move pan servo!\n";
-			}
-			
-			usleep(500);
-
-			status = tilt.moveServo(i, fd);
-			if(status == -1) {
-				std::cout << "Failed to move pan servo!\n";
-			}
-			usleep(500000);
-		}
-	}	
-*/
+	status = tilt.moveServo(90, fd);
+	if(status == -1) {
+		std::cout << "Failed to move pan servo!\n";
+	}
+	
 		
 	VideoCapture cap(0);
 	int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
 	int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);	
+	
+	printf("Resolution Width: %d\n", frame_width);
+	printf("Resolution Height: %d\n", frame_height);
+
 	if(!cap.isOpened()) {
 		cout << "Can not open webcam" << endl;
 		exit(0);
@@ -78,8 +65,40 @@ int main(int argc, char* argv[]) {
 		if(count % EVERY_FRAME == 0) {
 			cap >> frame;
 			Point face = detectAndDisplay(frame);
-			std::cout << "X: " << face.x << std::endl;
-			std::cout << "Y: " << face.y << std::endl;
+			int xNorm = face.x - 320;
+			int yNorm = (face.y - 240) * -1;
+			printf("X: %d\n", xNorm);
+			printf("Y: %d\n", yNorm);
+			int curr;
+			
+			if(xNorm != -320 && yNorm != -240) {
+				if(xNorm > 0) {
+					// Move Right
+					curr = pan.getAngle();
+					if(curr - 1 < 0) break;
+					pan.moveServo(curr - 1, fd);
+				} else if(xNorm < 0) {
+					// Move Left
+					curr = pan.getAngle();
+					if(curr + 1 > 180) break;
+					pan.moveServo(curr + 1, fd);
+				}
+
+				if(yNorm > 0) {
+					// Move Right
+					curr = tilt.getAngle();
+					if(curr - 1 < 0) break;
+					tilt.moveServo(curr - 1, fd);
+				} else if(yNorm < 0) {
+					// Move Left
+					curr = tilt.getAngle();
+					if(curr + 1 > 180) break;
+					tilt.moveServo(curr + 1, fd);
+				}
+
+			}		
+
+		
 			int c = waitKey(10);
 			if((char) c == 'c') break;
 
