@@ -1,5 +1,9 @@
 #include "servoHandler.h"
 
+ServoHandler::ServoHandler() {
+
+}
+
 ServoHandler::ServoHandler(int headerNum, int fd, int minVal, int maxVal) {
 	headerNumber = headerNum;
 	minValue = minVal;

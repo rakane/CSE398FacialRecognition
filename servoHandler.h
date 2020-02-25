@@ -8,6 +8,7 @@
 
 class ServoHandler {
 public:
+	ServoHandler();
 	ServoHandler(int headerNum, int fd, int minVal, int maxVal);
 	int moveServo(int angle, int fd);
 	int getAngle();
